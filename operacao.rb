@@ -1,10 +1,19 @@
 class Operacao
-    attr_accessor :id, :type, :currency, :total
+    attr_accessor :id, :type, :currency, :amount, :cotacao, :total
 
-    def initialize(id, type, currency, total)
-        @id = id
+    @@last_id = 0
+
+    def initialize(type, currency, amount, cotacao)
+        @id = @@last_id + 1
         @type = type
         @currency = currency
-        @total = total
+        @amount = amount
+        @cotacao = cotacao
+        if currency == "BRL"
+            @total = (amount/cotacao)
+        else
+            @total = amount
+        end
+        @@last_id = @id
     end
 end

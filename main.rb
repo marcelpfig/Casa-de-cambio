@@ -1,57 +1,52 @@
 require_relative 'caixa'
 require_relative 'operacao'
+require 'terminal-table'
 
 opt = 0
-caixa = Caixa.new(2000, 1000, 3.80)
+
+puts "Entre com a quantidade de reais do caixa:"
+r = gets().to_f()
+puts "Entre com a quantidade de dolares do caixa:"
+d = gets().to_f()
+puts "Entre com a cotação do dolar de hoje:"
+c = gets().to_f()
+
+caixa = Caixa.new(r, d, c)
 
 while opt != 7
-    puts "Bem-vindo a casa de cambio."
-    puts "Escolha uma das opções abaixo:"
 
-    puts "[1] Comprar dolares"
-    puts "[2] Vender dolares"
-    puts "[3] Comprar reais"
-    puts "[4] Vender reais"
-    puts "[5] Ver operações do dia"
-    puts "[6] Ver situação do caixa"
-    puts "[7] Sair"
+    caixa.show_menu
 
     opt = gets().to_i()
 
     case opt
     when 1
         puts "Quantos dolares deseja comprar?"
-        dolares = gets().to_i()
-        if !caixa.check_dollars(dolares)
-            puts "Não é possível realizar a transação. Dolares insuficientes no caixa ou quantia invalida."
-        else
-            operation = Operacao.new(1,"Compra", "U$", dolares)
-            caixa.transaction(operation)
-            #caixa.buy_dollars(operation)
-        end
+        amount = gets().to_f()
+        operation = Operacao.new("Compra", "U$D", amount, caixa.cotacao)
+        caixa.buy_dollars(operation)
+
     when 2
         puts "Quantos dolares deseja vender?"
-        dolares = gets().to_i()
-        if !caixa.check_dollars(dolares)
-            puts "Não é possível realizar a transação. Dolares insuficientes no caixa ou quantia invalida."
-        else
-            operation = Operacao.new(1,"Venda", "U$", dolares)
-            #caixa.buy_dollars(operation)
-            caixa.transaction(operation)
-        end
+        amount = gets().to_f()
+        operation = Operacao.new("Venda", "U$D", amount, caixa.cotacao)
+        caixa.sell_dollars(operation)
     when 3
         puts "Quantos reais deseja comprar?"
-        reais = gets().to_i()
-        if !caixa.check_reais(reais)
-            puts "Não é possível realizar a transação. REAIS insuficientes no caixa ou quantia invalida."
-        else
-            operation = Operacao.new(1,"Compra", "BRL", reais)
-            caixa.transaction(operation)
-        end
+        amount = gets().to_i()
+        operation = Operacao.new("Compra", "BRL", amount, caixa.cotacao)
+        caixa.buy_reais(operation)
+    when 4
+        puts "Quantos reais deseja vender?"
+        amount = gets().to_i()
+        operation = Operacao.new("Venda", "BRL", amount, caixa.cotacao)
+        caixa.sell_reais(operation)    
     when 5
         caixa.print_operations()
     when 6
         caixa.print()
+    when 7
+        caixa.save_operations_to_file()
     end
 end
 
