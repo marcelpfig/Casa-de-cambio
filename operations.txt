@@ -1,3 +1,0 @@
-Operação 1, Compra, U$D, 2.0, 10.0
-Operação 2, Venda, U$D, 2.0, 30.0
-Operação 3, Venda, BRL, 2.0, 10.0

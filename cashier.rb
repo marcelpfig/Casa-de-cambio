@@ -1,11 +1,11 @@
 class Cashier
-    attr_accessor :reais, :dolares, :quotation, :all_operations
+    attr_accessor :reais, :dolares, :quotation, :all_transactions
 
     def initialize(reais, dolares, quotation)
         @reais = reais
         @dolares = dolares
         @quotation = quotation
-        @all_operations = Array.new
+        @all_transactions = Array.new
     end
 
     def show_menu
@@ -30,74 +30,79 @@ class Cashier
         puts table
     end
 
-    def print_transactions
-        self.all_operations.each do |item|
+    def print_transactions(db)
+        transactions = db.execute("select * from transactions")
+        transactions.each do |item|
             rows =[]
-            rows << ["Operação:", item.id]
-            rows << ["Tipo:", item.type]
-            rows << ["Moeda:", item.currency]
-            rows << ["Total:", "#{item.total} U$D"]
+            rows << ["Operação:", item[0]]
+            rows << ["Tipo:", item[1]]
+            rows << ["Moeda:", item[2]]
+            rows << ["Total:", "#{item[3]} U$D"]
             
             table = Terminal::Table.new :rows => rows
             puts table
         end
     end
 
-    def buy_dollars(operation)
-        if operation.amount > (self.reais/self.quotation) or operation.amount <= 0
+    def buy_dollars(transaction, db)
+        if transaction.amount > (self.reais/self.quotation) or transaction.amount <= 0
             puts "Não é possível realizar a transação. Reais insuficientes no caixa ou quantia invalida."
-        elsif self.confirm_transaction(operation)
-            self.dolares += operation.amount
-            self.reais -= (operation.amount * self.quotation)
-            self.all_operations << operation
+        elsif self.confirm_transaction(transaction)
+            self.dolares += transaction.amount
+            self.reais -= (transaction.amount * self.quotation)
+            self.all_transactions << transaction
+            db.execute("insert into transactions(type, currency, amount, quotation) values(?, ?, ?, ?)", [transaction.type, transaction.currency, transaction.amount, transaction.quotation])
             puts "transacao concluida"
         else
             puts "transacao cancelada"
         end
     end
 
-    def sell_dollars(operation)
-        if operation.amount > self.dolares or operation.amount <= 0
+    def sell_dollars(transaction, db)
+        if transaction.amount > self.dolares or transaction.amount <= 0
             puts "Não é possível realizar a transação. Reais insuficientes no caixa ou quantia invalida."
-        elsif self.confirm_transaction(operation)
-            self.dolares -= operation.amount
-            self.reais += (operation.amount * self.quotation)
-            self.all_operations << operation
+        elsif self.confirm_transaction(transaction)
+            self.dolares -= transaction.amount
+            self.reais += (transaction.amount * self.quotation)
+            self.all_transactions << transaction
+            db.execute("insert into transactions(type, currency, amount, quotation) values(?, ?, ?, ?)", [transaction.type, transaction.currency, transaction.amount, transaction.quotation])
             puts "transacao concluida"
         else
             puts "transacao cancelada"
         end
     end
 
-    def buy_reais(operation)
-        if operation.amount > (self.dolares * self.quotation) or operation.amount <= 0
+    def buy_reais(transaction, db)
+        if transaction.amount > (self.dolares * self.quotation) or transaction.amount <= 0
             puts "Não é possível realizar a transação. Dolares insuficientes no caixa ou quantia invalida."
-        elsif self.confirm_transaction(operation)
-            self.dolares -= (operation.amount/self.quotation)
-            self.reais += operation.amount
-            self.all_operations << operation
+        elsif self.confirm_transaction(transaction)
+            self.dolares -= (transaction.amount/self.quotation)
+            self.reais += transaction.amount
+            self.all_transactions << transaction
+            db.execute("insert into transactions(type, currency, amount, quotation) values(?, ?, ?, ?)", [transaction.type, transaction.currency, transaction.amount, transaction.quotation])
             puts "transacao concluida"
         else
             puts "transacao cancelada"
         end
     end
 
-    def sell_reais(operation)
-        if operation.amount > self.reais or operation.amount <= 0
+    def sell_reais(transaction, db)
+        if transaction.amount > self.reais or transaction.amount <= 0
             puts "Não é possível realizar a transação. Dolares insuficientes no caixa ou quantia invalida."
-        elsif self.confirm_transaction(operation)
-            self.dolares += (operation.amount/self.quotation)
-            self.reais -= operation.amount
-            self.all_operations << operation
+        elsif self.confirm_transaction(transaction)
+            self.dolares += (transaction.amount/self.quotation)
+            self.reais -= transaction.amount
+            self.all_transactions << transaction
+            db.execute("insert into transactions(type, currency, amount, quotation) values(?, ?, ?, ?)", [transaction.type, transaction.currency, transaction.amount, transaction.quotation])
             puts "transacao concluida"
         else
             puts "transacao cancelada"
         end
     end
 
-    def confirm_transaction(operation)
-        puts "Operação de #{operation.type} de #{operation.amount} de #{operation.currency}."
-        puts "Total de #{operation.total} U$D"
+    def confirm_transaction(transaction)
+        puts "Operação de #{transaction.type} de #{transaction.amount} de #{transaction.currency}."
+        puts "Total de #{transaction.total} U$D"
         puts "Deseja confirmar a transação? (y/n)"
         opt = gets().chomp()
         if opt == "y"
@@ -108,8 +113,8 @@ class Cashier
     end
 
     def save_transactions_to_file
-        File.open('./operations.txt', 'w+') do |file|
-            self.all_operations.each do |item|
+        File.open('./transactions.txt', 'w+') do |file|
+            self.all_transactions.each do |item|
                 file.write("Operação #{item.id}, #{item.type}, #{item.currency}, #{item.quotation}, #{item.total}\n")
             end
         end
