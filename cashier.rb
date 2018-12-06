@@ -1,10 +1,10 @@
-class Caixa
-    attr_accessor :reais, :dolares, :cotacao, :all_operations
+class Cashier
+    attr_accessor :reais, :dolares, :quotation, :all_operations
 
-    def initialize(reais, dolares, cotacao)
+    def initialize(reais, dolares, quotation)
         @reais = reais
         @dolares = dolares
-        @cotacao = cotacao
+        @quotation = quotation
         @all_operations = Array.new
     end
 
@@ -25,12 +25,12 @@ class Caixa
         rows = []
         rows << ["Reais:", self.reais]
         rows << ["Dolares:", self.dolares]
-        rows << ["Cotação:", self.cotacao]
+        rows << ["Cotação:", self.quotation]
         table = Terminal::Table.new :title => "Caixa Atual", :rows => rows
         puts table
     end
 
-    def print_operations
+    def print_transactions
         self.all_operations.each do |item|
             rows =[]
             rows << ["Operação:", item.id]
@@ -44,11 +44,11 @@ class Caixa
     end
 
     def buy_dollars(operation)
-        if operation.amount > (self.reais/self.cotacao) or operation.amount <= 0
+        if operation.amount > (self.reais/self.quotation) or operation.amount <= 0
             puts "Não é possível realizar a transação. Reais insuficientes no caixa ou quantia invalida."
         elsif self.confirm_transaction(operation)
             self.dolares += operation.amount
-            self.reais -= (operation.amount * self.cotacao)
+            self.reais -= (operation.amount * self.quotation)
             self.all_operations << operation
             puts "transacao concluida"
         else
@@ -61,7 +61,7 @@ class Caixa
             puts "Não é possível realizar a transação. Reais insuficientes no caixa ou quantia invalida."
         elsif self.confirm_transaction(operation)
             self.dolares -= operation.amount
-            self.reais += (operation.amount * self.cotacao)
+            self.reais += (operation.amount * self.quotation)
             self.all_operations << operation
             puts "transacao concluida"
         else
@@ -70,10 +70,10 @@ class Caixa
     end
 
     def buy_reais(operation)
-        if operation.amount > (self.dolares * self.cotacao) or operation.amount <= 0
+        if operation.amount > (self.dolares * self.quotation) or operation.amount <= 0
             puts "Não é possível realizar a transação. Dolares insuficientes no caixa ou quantia invalida."
         elsif self.confirm_transaction(operation)
-            self.dolares -= (operation.amount/self.cotacao)
+            self.dolares -= (operation.amount/self.quotation)
             self.reais += operation.amount
             self.all_operations << operation
             puts "transacao concluida"
@@ -86,7 +86,7 @@ class Caixa
         if operation.amount > self.reais or operation.amount <= 0
             puts "Não é possível realizar a transação. Dolares insuficientes no caixa ou quantia invalida."
         elsif self.confirm_transaction(operation)
-            self.dolares += (operation.amount/self.cotacao)
+            self.dolares += (operation.amount/self.quotation)
             self.reais -= operation.amount
             self.all_operations << operation
             puts "transacao concluida"
@@ -107,10 +107,10 @@ class Caixa
         end
     end
 
-    def save_operations_to_file
+    def save_transactions_to_file
         File.open('./operations.txt', 'w+') do |file|
             self.all_operations.each do |item|
-                file.write("Operação #{item.id}, #{item.type}, #{item.currency}, #{item.cotacao}, #{item.total}\n")
+                file.write("Operação #{item.id}, #{item.type}, #{item.currency}, #{item.quotation}, #{item.total}\n")
             end
         end
     end

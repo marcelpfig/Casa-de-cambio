@@ -1,5 +1,5 @@
-require_relative 'caixa'
-require_relative 'operacao'
+require_relative 'cashier'
+require_relative 'transaction'
 require 'terminal-table'
 
 opt = 0
@@ -11,11 +11,11 @@ d = gets().to_f()
 puts "Entre com a cotação do dolar de hoje:"
 c = gets().to_f()
 
-caixa = Caixa.new(r, d, c)
+cashier = Cashier.new(r, d, c)
 
 while opt != 7
 
-    caixa.show_menu
+    cashier.show_menu
 
     opt = gets().to_i()
 
@@ -23,30 +23,30 @@ while opt != 7
     when 1
         puts "Quantos dolares deseja comprar?"
         amount = gets().to_f()
-        operation = Operacao.new("Compra", "U$D", amount, caixa.cotacao)
-        caixa.buy_dollars(operation)
+        transaction = Transaction.new("Compra", "U$D", amount, cashier.quotation)
+        cashier.buy_dollars(transaction)
 
     when 2
         puts "Quantos dolares deseja vender?"
         amount = gets().to_f()
-        operation = Operacao.new("Venda", "U$D", amount, caixa.cotacao)
-        caixa.sell_dollars(operation)
+        transaction = Transaction.new("Venda", "U$D", amount, cashier.quotation)
+        cashier.sell_dollars(transaction)
     when 3
         puts "Quantos reais deseja comprar?"
         amount = gets().to_i()
-        operation = Operacao.new("Compra", "BRL", amount, caixa.cotacao)
-        caixa.buy_reais(operation)
+        transaction = Transaction.new("Compra", "BRL", amount, cashier.quotation)
+        cashier.buy_reais(transaction)
     when 4
         puts "Quantos reais deseja vender?"
         amount = gets().to_i()
-        operation = Operacao.new("Venda", "BRL", amount, caixa.cotacao)
-        caixa.sell_reais(operation)    
+        transaction = Transaction.new("Venda", "BRL", amount, cashier.quotation)
+        cashier.sell_reais(transaction)    
     when 5
-        caixa.print_operations()
+        cashier.print_transactions()
     when 6
-        caixa.print()
+        cashier.print()
     when 7
-        caixa.save_operations_to_file()
+        cashier.save_transactions_to_file()
     end
 end
 
