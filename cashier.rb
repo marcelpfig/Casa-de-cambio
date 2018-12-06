@@ -1,11 +1,18 @@
 class Cashier
-    attr_accessor :reais, :dolares, :quotation, :all_transactions
+    attr_accessor :id, :date, :reais, :dolares, :quotation, :all_transactions
 
     def initialize(reais, dolares, quotation)
+        @date = DateTime.now.strftime('%Y-%m-%d')
         @reais = reais
         @dolares = dolares
         @quotation = quotation
         @all_transactions = Array.new
+    end
+
+    def self.check_cashier(db)
+        now = DateTime.now.strftime('%Y-%m-%d')
+        #result = db.execute("select reais, dolares, quotation from cashiers where date like #{now.year}-#{now.month}-#{now.day};")
+        result = db.execute("select id, reais, dolares, quotation from cashiers where date = '#{now}';")
     end
 
     def show_menu
@@ -110,6 +117,10 @@ class Cashier
         else
             false
         end
+    end
+
+    def save_to_db(db)
+        db.execute("insert into cashiers(date, reais, dolares, quotation) values(?, ?, ?, ?)", [self.date, self.reais, self.dolares, self.quotation])
     end
 
     def save_transactions_to_file
