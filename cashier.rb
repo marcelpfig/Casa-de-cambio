@@ -1,18 +1,17 @@
 class Cashier
-    attr_accessor :id, :date, :reais, :dolares, :quotation, :all_transactions
+    attr_accessor :id, :user, :date, :reais, :dolares, :quotation
 
-    def initialize(reais, dolares, quotation)
+    def initialize(user, reais, dolares, quotation)
+        @user = user
         @date = DateTime.now.strftime('%Y-%m-%d')
         @reais = reais
         @dolares = dolares
         @quotation = quotation
-        @all_transactions = Array.new
     end
 
-    def self.check_cashier(db)
+    def self.check_cashier(user, db)
         now = DateTime.now.strftime('%Y-%m-%d')
-        #result = db.execute("select reais, dolares, quotation from cashiers where date like #{now.year}-#{now.month}-#{now.day};")
-        result = db.execute("select id, reais, dolares, quotation from cashiers where date = '#{now}';")
+        result = db.execute("select id, user, reais, dolares, quotation from cashiers where date = '#{now}' and user = '#{user}';")
     end
 
     def show_menu
@@ -30,6 +29,7 @@ class Cashier
 
     def print
         rows = []
+        rows << ["Operador:", self.user]
         rows << ["Reais:", self.reais]
         rows << ["Dolares:", self.dolares]
         rows << ["Cotação:", self.quotation]
@@ -38,7 +38,7 @@ class Cashier
     end
 
     def print_transactions(db)
-        transactions = db.execute("select * from transactions")
+        transactions = db.execute("select * from transactions where cashier_id = #{self.id}")
         transactions.each do |item|
             rows =[]
             rows << ["Operação:", item[0]]
@@ -57,8 +57,7 @@ class Cashier
         elsif self.confirm_transaction(transaction)
             self.dolares += transaction.amount
             self.reais -= (transaction.amount * self.quotation)
-            self.all_transactions << transaction
-            db.execute("insert into transactions(type, currency, amount, quotation) values(?, ?, ?, ?)", [transaction.type, transaction.currency, transaction.amount, transaction.quotation])
+            db.execute("insert into transactions(type, currency, amount, quotation, cashier_id) values(?, ?, ?, ?, ?)", [transaction.type, transaction.currency, transaction.amount, transaction.quotation, self.id])
             puts "transacao concluida"
         else
             puts "transacao cancelada"
@@ -71,8 +70,7 @@ class Cashier
         elsif self.confirm_transaction(transaction)
             self.dolares -= transaction.amount
             self.reais += (transaction.amount * self.quotation)
-            self.all_transactions << transaction
-            db.execute("insert into transactions(type, currency, amount, quotation) values(?, ?, ?, ?)", [transaction.type, transaction.currency, transaction.amount, transaction.quotation])
+            db.execute("insert into transactions(type, currency, amount, quotation, cashier_id) values(?, ?, ?, ?, ?)", [transaction.type, transaction.currency, transaction.amount, transaction.quotation, self.id])
             puts "transacao concluida"
         else
             puts "transacao cancelada"
@@ -85,8 +83,7 @@ class Cashier
         elsif self.confirm_transaction(transaction)
             self.dolares -= (transaction.amount/self.quotation)
             self.reais += transaction.amount
-            self.all_transactions << transaction
-            db.execute("insert into transactions(type, currency, amount, quotation) values(?, ?, ?, ?)", [transaction.type, transaction.currency, transaction.amount, transaction.quotation])
+            db.execute("insert into transactions(type, currency, amount, quotation, cashier_id) values(?, ?, ?, ?, ?)", [transaction.type, transaction.currency, transaction.amount, transaction.quotation, self.id])
             puts "transacao concluida"
         else
             puts "transacao cancelada"
@@ -99,8 +96,7 @@ class Cashier
         elsif self.confirm_transaction(transaction)
             self.dolares += (transaction.amount/self.quotation)
             self.reais -= transaction.amount
-            self.all_transactions << transaction
-            db.execute("insert into transactions(type, currency, amount, quotation) values(?, ?, ?, ?)", [transaction.type, transaction.currency, transaction.amount, transaction.quotation])
+            db.execute("insert into transactions(type, currency, amount, quotation, cashier_id) values(?, ?, ?, ?, ?)", [transaction.type, transaction.currency, transaction.amount, transaction.quotation, self.id])
             puts "transacao concluida"
         else
             puts "transacao cancelada"
@@ -119,8 +115,12 @@ class Cashier
         end
     end
 
-    def save_to_db(db)
-        db.execute("insert into cashiers(date, reais, dolares, quotation) values(?, ?, ?, ?)", [self.date, self.reais, self.dolares, self.quotation])
+    def new_to_db(db)
+        db.execute("insert into cashiers(user, date, reais, dolares, quotation) values(?, ?, ?, ?, ?)", [self.user, self.date, self.reais, self.dolares, self.quotation])
+    end
+
+    def update_to_db(db)
+        db.execute("update cashiers set reais = #{self.reais}, dolares = #{self.dolares}, quotation = #{self.quotation} where id = #{self.id}")
     end
 
     def save_transactions_to_file
